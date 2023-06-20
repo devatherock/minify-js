@@ -74,12 +74,14 @@ jobs:
     environment:
       DOCKERHUB_REPOSITORY: 'devatherock/minify-js'
       SHORT_DESCRIPTION: 'Github action/CI Plugin to minify html, javascript and css files'
-      README_FILEPATH: README.md
+      README_FILEPATH: /README.md
     steps:
       - checkout
       - attach_workspace:
           at: ~/minify-js
       - run: |
+          pwd
+          cd /
           sh /entrypoint.sh
           cat /action.log
 
