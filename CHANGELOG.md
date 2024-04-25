@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed
+- Replaced `ubuntu-2004:2022.04.1` image with `ubuntu-2204:2023.04.2`
 
 ## [3.0.0] - 2023-11-26
 ### Added

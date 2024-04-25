@@ -3,16 +3,30 @@ docker_auth: &docker_auth
     username: $DOCKER_USERNAME
     password: $DOCKER_PASSWORD
 
-slack_image: &slack_image
-  docker:
-    - image: devatherock/simple-slack:1.0.0
-      <<: *docker_auth
+vm_executor_image: &vm_executor_image
+  machine:
+    image: ubuntu-2204:2023.04.2
 
 work_directory: &work_directory
   working_directory: ~/minify-js
 
 resource_class: &resource_class
   resource_class: small
+
+release_filter: &release_filter
+  filters:
+    branches:
+      only: non-existent-branch
+    tags:
+      only: /^v[0-9\.]+$/
+
+orbs:
+  templates: devatherock/circleci-templates@0.6.0
+
+parameters:
+  repo_name:
+    type: string
+    default: "minify-js"
 
 executors:
   docker-executor:
@@ -22,13 +36,11 @@ executors:
     <<: *resource_class
     <<: *work_directory
   machine-executor:
-    machine:
-      image: ubuntu-2204:2023.04.2
+    <<: *vm_executor_image
     resource_class: medium
     <<: *work_directory
   arm-executor:
-    machine:
-      image: ubuntu-2004:2022.04.1
+    <<: *vm_executor_image
     resource_class: arm.medium
     <<: *work_directory
 
@@ -74,24 +86,7 @@ jobs:
       - save_cache:
           paths:
             - ~/node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}      
-
-  dockerhub_readme:
-    docker:
-      - image: peterevans/dockerhub-description:3.4.1
-        <<: *docker_auth
-    <<: *resource_class
-    <<: *work_directory
-    environment:
-      DOCKERHUB_REPOSITORY: 'devatherock/minify-js'
-      SHORT_DESCRIPTION: 'Github action/CI Plugin to minify html, javascript and css files'
-      README_FILEPATH: /root/minify-js/README.md
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ~/minify-js
-      - run: |
-          cd / && sh /entrypoint.sh
+          key: v1-dependencies-{{ checksum "package.json" }}
 
   functional_test:
     parameters:
@@ -129,31 +124,31 @@ jobs:
           docker buildx imagetools create \
             -t devatherock/minify-js:$TAG devatherock/minify-js:$DEV_TAG
 
-  notify:
-    <<: *slack_image
-    <<: *resource_class
-    environment:
-      TEXT: "Success: {{.CircleBuildUrl}} by {{.CircleUsername}}"
-      COLOR: "#33ad7f"
-      CHANNEL: general
-      TITLE: "Build completed"
-    steps:
-      - run: /bin/simpleslack
-
 workflows:
   version: 2.1
   docker_publish:
     jobs:
+      - templates/slack:
+          name: notify
+          context:
+            - docker-credentials
+            - slack-webhook
+          filters:
+            branches:
+              only: master    
       - publish:
           context:
             - docker-credentials
-          filters:
-            branches:
-              only: master
-      - dockerhub_readme:
+          requires:
+            - notify
+      - templates/dockerhub_readme_update:
+          name: dockerhub_readme
           context:
             - docker-credentials
             - dockerhub-readme-credentials
+          docker_image: '<< pipeline.parameters.repo_name >>'
+          image_description: 'Github action/CI Plugin to minify html, javascript and css files'
+          work_dir: '~/<< pipeline.parameters.repo_name >>'
           requires:
             - publish
       - functional_test:
@@ -170,30 +165,21 @@ workflows:
           runner: arm-executor
           requires:
             - dockerhub_readme
-      - notify:
-          context:
-            - docker-credentials
-            - slack-webhook
-          requires:
-            - functional_test_amd
-            - functional_test_arm
 
   release:
     jobs:
-      - publish_release:
-          context:
-            - docker-credentials
-          filters:
-            branches:
-              only: non-existent-branch
-            tags:
-              only: /^v[0-9\.]+$/
-      - notify:
+      - templates/slack:
+          name: notify
           context:
             - docker-credentials
             - slack-webhook
+          <<: *release_filter    
+      - publish_release:
+          context:
+            - docker-credentials
+          <<: *release_filter
           requires:
-            - publish_release
+            - notify
 
   pr_check:
     jobs:
