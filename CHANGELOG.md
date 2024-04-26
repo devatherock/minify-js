@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- [#22](https://github.com/devatherock/minify-js/issues/22): Ability to exclude specific files/folders within the input directory from minification
+
 ### Changed
 - Replaced `ubuntu-2004:2022.04.1` image with `ubuntu-2204:2023.04.2`
 
