@@ -21,6 +21,8 @@ The following parameters can be set to configure the action.
 
 *   **inclusions** -  Multi-line string, each line of which contains a regex representing files/paths within the input directory to include/minify. By default, all files in the input directory will be minified
 
+*   **exclusions** -  Multi-line string, each line of which contains a regex representing files to exclude from minification. By default, no file in the input directory will be excluded
+
 ```yaml
 jobs:
   build:
@@ -35,6 +37,8 @@ jobs:
           inclusions: |-        # Optional
             .*assets.*
             .*static/index.html
+          exclusions: |-        # Optional
+            .*assets/generated/.*
 ```
 
 ### Docker
@@ -47,6 +51,7 @@ docker run --rm \
   -e PARAMETER_OUTPUT_PATH=/work/minify/src \
   -e PARAMETER_ADD_SUFFIX=false \
   -e PARAMETER_INCLUSIONS=".*assets.*\n.*static/index.html" \
+  -e PARAMETER_EXCLUSIONS=".*assets/generated/.*" \
   devatherock/minify-js:3.0.0
 ```
 
@@ -63,6 +68,8 @@ The following parameters can be set to configure the plugin.
 
 *   **inclusions** -  Multi-line string, each line of which contains a regex representing files to include/minify. By default, all files in the input directory will be minified
 
+*   **exclusions** -  Multi-line string, each line of which contains a regex representing files to exclude from minification. By default, no file in the input directory will be excluded
+
 ```yaml
 steps:
   - name: minify_js
@@ -77,6 +84,8 @@ steps:
       inclusions: |-
         .*assets.*
         .*static/index.html
+      exclusions: |-
+        .*assets/generated/.*        
 ```
 
 ### CircleCI
@@ -93,6 +102,7 @@ jobs:
       PARAMETER_OUTPUT_PATH: minify/src
       PARAMETER_ADD_SUFFIX: false
       PARAMETER_INCLUSIONS: '.*assets.*\n.*static/index.html'
+      PARAMETER_EXCLUSIONS: '.*assets/generated/.*'
     steps:
       - checkout
       - run: node /app/bin/cli.mjs

@@ -243,4 +243,45 @@ class MinifyJsDockerSpec extends Specification {
                 'github'
         ]
     }
+
+    @Unroll
+    void 'test minify - exclusions specified. ci: #ci'() {
+        given:
+        String outputHtmlFile = "${System.properties['user.dir']}/src/test/resources/output/index.min.html"
+        String outputJsFile = "${System.properties['user.dir']}/src/test/resources/output/scripts.min.js"
+        String outputCssFile = "${System.properties['user.dir']}/src/test/resources/output/main.min.css"
+
+        when:
+        def output = ProcessUtil.executeCommand(['docker', 'run', '--rm',
+                                                 '-v', "${System.properties['user.dir']}:/work",
+                                                 '-w=/work',
+                                                 '-e', "${config[ci].inputPathParam}=/work/src/test/resources",
+                                                 '-e', "${config[ci].outputPathParam}=/work/src/test/resources/output",
+                                                 '-e', "${config[ci].envPrefix}EXCLUSIONS=.*static/.*",
+                                                 imageName])
+
+        then:
+        output[0] == 0
+        output[1].contains('Minified /work/src/test/resources/scripts/scripts.js > /work/src/test/resources/output/scripts.min.js')
+        new File(outputJsFile).text ==
+                '$((function(){$("#templateAndModelForm *:input[type!=hidden]:first").focus()}));\n'
+
+        then: "html and css output files should not exist as their parent folder was specified in exclusions"
+        Files.notExists(Paths.get(outputHtmlFile))
+        Files.notExists(Paths.get(outputCssFile))
+        !output[1].contains('Minified /work/src/test/resources/static/index.html > /work/src/test/resources/output/index.min.html')
+        !output[1].contains('Minified /work/src/test/resources/static/main.css > /work/src/test/resources/output/main.min.css')
+
+        cleanup:
+        Files.deleteIfExists(Paths.get(outputHtmlFile))
+        Files.deleteIfExists(Paths.get(outputJsFile))
+        Files.deleteIfExists(Paths.get(outputCssFile))
+
+        where:
+        ci << [
+                'drone',
+                'vela',
+                'github'
+        ]
+    }
 }
