@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest      # Docker-based github actions have to run on a linux environment
     steps:
       - name: HTML/CSS/JS Minifier
-        uses: docker://devatherock/minify-js:3.0.0
+        uses: docker://devatherock/minify-js:3.1.0
         with:
           directory: 'src'      # Optional
           output: 'minify/src'  # Optional
@@ -52,7 +52,7 @@ docker run --rm \
   -e PARAMETER_ADD_SUFFIX=false \
   -e PARAMETER_INCLUSIONS=".*assets.*\n.*static/index.html" \
   -e PARAMETER_EXCLUSIONS=".*assets/generated/.*" \
-  devatherock/minify-js:3.0.0
+  devatherock/minify-js:3.1.0
 ```
 
 ### vela
@@ -76,7 +76,7 @@ steps:
     ruleset:
       branch: master
       event: push
-    image: devatherock/minify-js:3.0.0
+    image: devatherock/minify-js:3.1.0
     parameters:
       input_path: src
       output_path: minify/src
@@ -95,7 +95,7 @@ version: 2.1
 jobs:
   minify_js:
     docker:
-      - image: devatherock/minify-js:3.0.0
+      - image: devatherock/minify-js:3.1.0
     working_directory: ~/my-repo
     environment:
       PARAMETER_INPUT_PATH: src
