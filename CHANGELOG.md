@@ -6,6 +6,7 @@
 
 ### Changed
 - Replaced `ubuntu-2004:2022.04.1` image with `ubuntu-2204:2023.04.2`
+- [#21](https://github.com/devatherock/minify-js/pull/21): Skipped `*.min.*` files from minification
 
 ## [3.0.0] - 2023-11-26
 ### Added
