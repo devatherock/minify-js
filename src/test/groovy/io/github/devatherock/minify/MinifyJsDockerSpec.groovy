@@ -6,6 +6,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
@@ -69,6 +70,54 @@ class MinifyJsDockerSpec extends Specification {
         Files.deleteIfExists(Paths.get(outputHtmlFile))
         Files.deleteIfExists(Paths.get(outputJsFile))
         Files.deleteIfExists(Paths.get(outputCssFile))
+    }
+
+    void 'test minify - *.min.* files should be skipped'() {
+        given:
+        String baseDir = System.properties['user.dir']
+        String outputHtmlFile = "${baseDir}/src/test/resources/static/index.min.html"
+        String outputJsFile = "${baseDir}/src/test/resources/scripts/scripts.min.js"
+        String outputCssFile = "${baseDir}/src/test/resources/static/main.min.css"
+
+        and:
+        Path recursiveOutputHtmlFile = Paths.get("${baseDir}/src/test/resources/static/index.min.min.html")
+        Path recursiveOutputJsFile = Paths.get("${baseDir}/src/test/resources/scripts/scripts.min.min.js")
+        Path recursiveOutputCssFile = Paths.get("${baseDir}/src/test/resources/static/main.min.min.css")
+
+        and:
+        def command = ['docker', 'run', '--rm',
+                        '-v', "${baseDir}:/work",
+                        '-w=/work',
+                        imageName]
+
+        when:
+        def output = ProcessUtil.executeCommand(command)
+        ProcessUtil.executeCommand(command)                        
+
+        then:
+        output[0] == 0
+        output[1].contains('Minified /work/src/test/resources/static/index.html > /work/src/test/resources/static/index.min.html')
+        output[1].contains('Minified /work/src/test/resources/static/main.css > /work/src/test/resources/static/main.min.css')
+        output[1].contains('Minified /work/src/test/resources/scripts/scripts.js > /work/src/test/resources/scripts/scripts.min.js')
+        new File(outputHtmlFile).text ==
+                '<!doctype html><title>Test title</title><div id=layout><div id=main><div class=header><h1>Test body</h1></div></div></div>\n'
+        new File(outputJsFile).text ==
+                '$((function(){$("#templateAndModelForm *:input[type!=hidden]:first").focus()}));\n'
+        new File(outputCssFile).text ==
+                '.content{width:50%;display:block;margin:2% auto}.header{text-align:center;color:#444;border-bottom:1px solid #eee}\n'
+
+        and:
+        Files.notExists(recursiveOutputHtmlFile)
+        Files.notExists(recursiveOutputJsFile)
+        Files.notExists(recursiveOutputCssFile)
+
+        cleanup:
+        Files.deleteIfExists(Paths.get(outputHtmlFile))
+        Files.deleteIfExists(Paths.get(outputJsFile))
+        Files.deleteIfExists(Paths.get(outputCssFile))
+        Files.deleteIfExists(recursiveOutputHtmlFile)
+        Files.deleteIfExists(recursiveOutputJsFile)
+        Files.deleteIfExists(recursiveOutputCssFile)
     }
 
     @Unroll
