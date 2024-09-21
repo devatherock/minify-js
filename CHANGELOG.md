@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Changed
+- [#20](https://github.com/devatherock/minify-js/issues/20): Specified correct `node_modules` path to cache
+
+## [3.1.0] - 2024-04-28
 ### Added
 - [#22](https://github.com/devatherock/minify-js/issues/22): Ability to exclude specific files/folders within the input directory from minification
 
