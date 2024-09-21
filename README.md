@@ -45,6 +45,8 @@ jobs:
 
 ### Docker
 
+The docker image can be cached with [Docker Cache](https://github.com/marketplace/actions/docker-cache) to speed up subsequent runs, but doing a `docker load` is generally slower than the first method using the action.
+
 ```shell
 docker run --rm \
   -v "/path/to/files":/work \
