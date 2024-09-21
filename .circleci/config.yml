@@ -70,8 +70,8 @@ jobs:
           at: ~/minify-js
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "package.json" }}
-            - v1-dependencies-      
+            - v1-node-{{ checksum "package.json" }}
+            - v1-node-      
       - run: |
           npm install
           TAG=${CIRCLE_SHA1:0:8}
@@ -85,8 +85,8 @@ jobs:
             -t devatherock/minify-js:latest .
       - save_cache:
           paths:
-            - ~/node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+            - node_modules
+          key: v1-node-{{ checksum "package.json" }}
 
   functional_test:
     parameters:
