@@ -22,7 +22,7 @@
     "license": "MIT",
     "dependencies": {
         "yargs": "^17.7.2",
-        "minify": "^9.2.0",
+        "minify": "^14.1.0",
         "simple-node-logger": "^21.8.12"
     },
     "devDependencies": {
